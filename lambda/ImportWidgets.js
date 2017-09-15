@@ -22,6 +22,9 @@ exports.handler = (event, context, callback) => {
                     },
                     "props": {
                         S: JSON.stringify(definition.props)
+                    },
+                    "layout": {
+                        S: JSON.stringify(definition.layout || {})
                     }
                 }
             }

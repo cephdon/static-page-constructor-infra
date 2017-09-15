@@ -32,7 +32,8 @@ exports.handler = (event, context, callback) => {
                         name: definition.name.S,
                         slug: definition.slug.S,
                         previewImage: definition.previewImage.S,
-                        props: JSON.parse(definition.props.S)
+                        props: JSON.parse(definition.props.S),
+                        layout: JSON.parse(definition.layout.S),
                     }),
                     headers: {
                         'Access-Control-Allow-Origin': '*'

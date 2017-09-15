@@ -5,12 +5,11 @@ exports.handler = (event, context, callback) => {
 
     const params = {
         TableName: "static-cms-widgets",
-        ProjectionExpression: "#N, #S, #WP, #P",
+        ProjectionExpression: "#N, #S, #WP",
         ExpressionAttributeNames: {
             "#N": "name", 
             "#S": "slug",
-            "#WP": "previewImage",
-            "#P": "props"
+            "#WP": "previewImage"
         }
     };
 
@@ -32,8 +31,7 @@ exports.handler = (event, context, callback) => {
                     return {
                         name: page.name.S,
                         slug: page.slug.S,
-                        previewImage: page.previewImage.S,
-                        props: JSON.parse(page.props.S)
+                        previewImage: page.previewImage.S
                     }
                 })),
                 headers: {
