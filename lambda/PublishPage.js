@@ -20,61 +20,59 @@ exports.handler = (event, context, callback) => {
         }
     });
 
-    const groupByKey = (enumerable, key) => {
-        const ret = {};
+    const doPage = ({name, slug, configuration}) => {
+        return getWidgetsDefinitionsWithHTML(configuration).then(definitions => {
 
-        for (var i = enumerable.length - 1; i >= 0; i--) {
-            ret[enumerable[i][key]] = enumerable[i];
-        }
+            const getDefForConf = c => definitions.find(d => d.slug === c.widget);
 
-        return ret;
+            const renderWidgets = (configuration) => {
+                const out = [];
+
+                configuration.forEach(widget => {
+                    out.push(renderWidget(widget));
+                });
+
+                return out.join('');
+            };
+
+            const renderWidget = (conf) => {
+                let def = getDefForConf(conf);
+                let html = def.html;
+
+                Object.keys(def.props).forEach(propName => {
+                    html = html.replace(`{{ ${propName} }}`, conf.props[propName]);
+                });
+
+                if (conf.areas) {
+                    Object.keys(conf.areas).forEach(key => {
+                        html = html.replace(`{{ renderWidgets.${key} }}`, renderWidgets(conf.areas[key]));
+                    });
+                }
+
+                return html;
+            };
+
+            return getPageTemplate().then(body => {
+                body = body.replace(
+                    `{{ renderWidgets }}`,
+                    renderWidgets(configuration)
+                );
+
+                return savePage({slug, body});
+
+            });
+
+        });
     };
 
-    const doPage = ({name, slug, configuration}) => {
-        return getWidgetsDefinitions(configuration.map(widgetconfig => widgetconfig.widget)).then(definitions => {
-            return groupByKey(definitions, 'slug');
-        }).then(definitions => {
-            return configuration.map(conf => {
-                return Object.assign(conf, {
-                    def: definitions[conf.widget]
-                });
-            });
-        }).then(configuration => {
-            return getWidgetsHTMLs(configuration);
-        }).then(configuration => {
-            return getPageTemplate().then(mainPageTemplate => {
-                return {
-                    template: mainPageTemplate,
-                    configuration: configuration
-                };
-            });
-        }).then(context => {
-            const out = [];
-            const pageTemplate = context.template;
-
-            context.configuration.forEach(widget => {
-                let widgetTemplate = widget.def.html;
-
-                Object.keys(widget.def.props).forEach(propName => {
-                    widgetTemplate = widgetTemplate.replace(`{{ ${propName} }}`, widget.props[propName]);
-                });
-
-                out.push(widgetTemplate);
-            });
-
-            return pageTemplate.replace(
-                `{{ renderWidgets }}`, 
-                out.join('')
-            );
-        }).then(pageBody => {
-            return new Promise((resolve, reject) => {
-                s3.putObject({
-                    Body: pageBody,
-                    Bucket: 'bootstrap-marketing-site',
-                    Key: `${slug}.html`,
-                    ContentType: 'text/html'
-                }, (err, data) => err ? reject() : resolve());
-            });
+    const savePage = ({slug, body}) => {
+        return new Promise((resolve, reject) => {
+            s3.putObject({
+                Body: body,
+                Bucket: 'bootstrap-marketing-site',
+                Key: `${slug}.html`,
+                ContentType: 'text/html'
+            }, (err, data) => err ? reject() : resolve());
         });
     };
 
@@ -89,26 +87,45 @@ exports.handler = (event, context, callback) => {
         });     
     };
 
-    const getWidgetsHTMLs = (configuration) => {
-        return Promise.all(configuration.map(widgetconfig => {
+    const getWidgetsDefinitionsWithHTML = (configuration) => {
+
+        const getWidgetsProp = (c, fn) => {
+            const inner = (configuration) => {
+                const ret = [];
+
+                configuration.forEach(c => {
+                    ret.push(fn(c));
+                    
+                    if (c.areas) {
+                        Object.keys(c.areas).forEach(key => {
+                            ret.push.apply(ret, inner(c.areas[key]));
+                        });
+                    }
+                });
+
+                return ret;
+            };
+
+            return [...new Set(inner(c))];
+        };
+
+        const getWidgetHTML = (wdef) => {
             return new Promise((resolve, reject) => {
                 s3.getObject({
                     Bucket: 'awsstaticcms',
-                    Key: widgetconfig.def.html
+                    Key: wdef.html
                 }, (err, data) => {
                     if (err) {
                         reject(err);
                     } else {
-                        widgetconfig.def.html = data.Body.toString('utf-8');
-                        resolve(widgetconfig);
+                        wdef.html = data.Body.toString('utf-8');
+                        resolve(wdef);
                     }
                 });
             });
-        }));
-    }
+        };
 
-    const getWidgetsDefinitions = (slugs) => {
-        slugs = [...new Set(slugs)];
+        const slugs = getWidgetsProp(configuration, c => c.widget);
 
         return new Promise((resolve, reject) => {
             dynamodb.batchGetItem({
@@ -127,14 +144,14 @@ exports.handler = (event, context, callback) => {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(data.Responses['static-cms-widgets'].map(widget => {
-                        return {
+                    Promise.all(data.Responses['static-cms-widgets'].map(widget => {
+                        return getWidgetHTML({
                             slug: widget.slug.S,
                             name: widget.name.S,
                             html: widget.html.S,
                             props: JSON.parse(widget.props.S),
-                        };
-                    }));
+                        });
+                    })).then(arr => resolve(arr));
                 }
             });
         });
