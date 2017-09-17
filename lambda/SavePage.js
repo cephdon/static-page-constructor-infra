@@ -4,6 +4,7 @@ var dynamodb = new AWS.DynamoDB();
 exports.handler = (event, context, callback) => {
     const page = JSON.parse(event.body);
     page.configuration = page.configuration || [];
+    page.props = page.props || {};
     
     const params = {
         Item: {
@@ -13,8 +14,14 @@ exports.handler = (event, context, callback) => {
             "name": {
                 S: page.name
             },
+            "template": {
+                S: page.template
+            },
             "configuration": {
                 S: JSON.stringify(page.configuration)
+            },
+            "props": {
+                S: JSON.stringify(page.props)
             }
         },
         TableName: 'static-cms-pages'

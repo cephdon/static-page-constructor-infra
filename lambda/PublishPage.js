@@ -20,7 +20,7 @@ exports.handler = (event, context, callback) => {
         }
     });
 
-    const doPage = ({name, slug, configuration}) => {
+    const doPage = ({name, slug, configuration, template, props}) => {
         return getWidgetsDefinitionsWithHTML(configuration).then(definitions => {
 
             const getDefForConf = c => definitions.find(d => d.slug === c.widget);
@@ -52,11 +52,18 @@ exports.handler = (event, context, callback) => {
                 return html;
             };
 
-            return getPageTemplate().then(body => {
+            return getPageTemplate({template}).then(body => {
                 body = body.replace(
                     `{{ renderWidgets }}`,
                     renderWidgets(configuration)
                 );
+
+                Object.keys(props).forEach(key => {
+                    body = body.replace(
+                        `{{ page.${key} }}`,
+                        props[key]
+                    );
+                });
 
                 return savePage({slug, body});
 
@@ -70,17 +77,17 @@ exports.handler = (event, context, callback) => {
             s3.putObject({
                 Body: body,
                 Bucket: 'bootstrap-marketing-site',
-                Key: `${slug}.html`,
+                Key: `${slug}/index.html`,
                 ContentType: 'text/html'
             }, (err, data) => err ? reject() : resolve());
         });
     };
 
-    const getPageTemplate = () => {
+    const getPageTemplate = ({template}) => {
         return new Promise((resolve, reject) => {
             s3.getObject({
                 Bucket: 'awsstaticcms',
-                Key: 'bootstrap-marketing-site/mainPageTemplate.html'
+                Key: `bootstrap-marketing-site/${template}PageTemplate.html`
             }, (err, data) => {
                 err ? reject(err) : resolve(data.Body.toString('utf-8'))
             });
@@ -174,7 +181,9 @@ exports.handler = (event, context, callback) => {
                 doPage({
                     name: data.Item.name.S,
                     slug: data.Item.slug.S,
-                    configuration: JSON.parse(data.Item.configuration.S)
+                    configuration: JSON.parse(data.Item.configuration.S),
+                    props: JSON.parse(data.Item.props.S),
+                    template: data.Item.template.S
                 }).then(() => {
                     http200({});
                 });
