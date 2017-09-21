@@ -11,7 +11,7 @@ exports.handler = (event, context, callback) => {
                     S: slug
                 }
             }, 
-            TableName: "static-cms-page-templates"
+            TableName: process.env.PAGES_TABLE_NAME
         };
 
         dynamodb.getItem(params, function(err, data) {
@@ -31,7 +31,9 @@ exports.handler = (event, context, callback) => {
                     body: JSON.stringify({
                         name: page.name.S,
                         slug: page.slug.S,
-                        props: JSON.parse(page.props.S)
+                        template: page.template ? page.template.S : 'main',
+                        configuration: JSON.parse(page.configuration.S),
+                        props: page.props ? JSON.parse(page.props.S) : {}
                     }),
                     headers: {
                         'Access-Control-Allow-Origin': '*'

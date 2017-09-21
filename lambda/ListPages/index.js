@@ -4,7 +4,7 @@ var dynamodb = new AWS.DynamoDB();
 exports.handler = (event, context, callback) => {
 
     const params = {
-        TableName: "static-cms-pages",
+        TableName: process.env.PAGES_TABLE_NAME,
         ProjectionExpression: "#N, #S",
         ExpressionAttributeNames: {
             "#N": "name", 

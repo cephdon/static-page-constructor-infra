@@ -4,12 +4,11 @@ var dynamodb = new AWS.DynamoDB();
 exports.handler = (event, context, callback) => {
 
     const params = {
-        TableName: "static-cms-widgets",
-        ProjectionExpression: "#N, #S, #WP",
+        TableName: process.env.PAGE_TEMPLATES_TABLE_NAME,
+        ProjectionExpression: "#N, #S",
         ExpressionAttributeNames: {
             "#N": "name", 
-            "#S": "slug",
-            "#WP": "previewImage"
+            "#S": "slug"
         }
     };
 
@@ -27,16 +26,15 @@ exports.handler = (event, context, callback) => {
 
             callback(null, {
                 statusCode: 200,
+                headers: {
+                    'Access-Control-Allow-Origin': '*'
+                },
                 body: JSON.stringify(pages.map(page => {
                     return {
                         name: page.name.S,
-                        slug: page.slug.S,
-                        previewImage: page.previewImage.S
+                        slug: page.slug.S
                     }
-                })),
-                headers: {
-                    'Access-Control-Allow-Origin': '*'
-                }
+                }))
             });
         }
     });

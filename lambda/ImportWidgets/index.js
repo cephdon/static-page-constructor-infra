@@ -14,11 +14,17 @@ exports.handler = (event, context, callback) => {
                     "name": {
                         S: definition.name
                     },
+                    "previewImage": {
+                        S: definition.previewImage
+                    },
                     "html": {
                         S: definition.html
                     },
                     "props": {
-                        S: JSON.stringify(definition.props || {})
+                        S: JSON.stringify(definition.props)
+                    },
+                    "layout": {
+                        S: JSON.stringify(definition.layout || {})
                     }
                 }
             }
@@ -27,7 +33,7 @@ exports.handler = (event, context, callback) => {
 
     const params = {
         RequestItems: {
-            'static-cms-page-templates': putRequests
+            [process.env.WIDGETS_TABLE_NAME]: putRequests
         }
     };
     

@@ -11,7 +11,7 @@ exports.handler = (event, context, callback) => {
                     S: slug
                 }
             }, 
-            TableName: "static-cms-widgets"
+            TableName: process.env.PAGE_TEMPLATES_TABLE_NAME
         };
 
         dynamodb.getItem(params, function(err, data) {
@@ -24,16 +24,14 @@ exports.handler = (event, context, callback) => {
                     }
                 });
             } else {
-                const definition = data.Item;
+                const page = data.Item;
 
                 callback(null, {
                     statusCode: 200,
                     body: JSON.stringify({
-                        name: definition.name.S,
-                        slug: definition.slug.S,
-                        previewImage: definition.previewImage.S,
-                        props: JSON.parse(definition.props.S),
-                        layout: JSON.parse(definition.layout.S),
+                        name: page.name.S,
+                        slug: page.slug.S,
+                        props: JSON.parse(page.props.S)
                     }),
                     headers: {
                         'Access-Control-Allow-Origin': '*'

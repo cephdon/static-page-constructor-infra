@@ -24,7 +24,7 @@ exports.handler = (event, context, callback) => {
                 S: JSON.stringify(page.props)
             }
         },
-        TableName: 'static-cms-pages'
+        TableName: process.env.PAGES_TABLE_NAME
     };
 
     dynamodb.putItem(params, function(err, data) {

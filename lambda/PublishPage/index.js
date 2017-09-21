@@ -76,7 +76,7 @@ exports.handler = (event, context, callback) => {
         return new Promise((resolve, reject) => {
             s3.putObject({
                 Body: body,
-                Bucket: 'bootstrap-marketing-site',
+                Bucket: process.env.TARGET_SITE_BUCKET,
                 Key: `${slug}/index.html`,
                 ContentType: 'text/html'
             }, (err, data) => err ? reject() : resolve());
@@ -86,8 +86,8 @@ exports.handler = (event, context, callback) => {
     const getPageTemplate = ({template}) => {
         return new Promise((resolve, reject) => {
             s3.getObject({
-                Bucket: 'awsstaticcms',
-                Key: `bootstrap-marketing-site/${template}PageTemplate.html`
+                Bucket: process.env.DEFINITIONS_BUCKET,
+                Key: `${template}PageTemplate.html`
             }, (err, data) => {
                 err ? reject(err) : resolve(data.Body.toString('utf-8'))
             });
@@ -119,7 +119,7 @@ exports.handler = (event, context, callback) => {
         const getWidgetHTML = (wdef) => {
             return new Promise((resolve, reject) => {
                 s3.getObject({
-                    Bucket: 'awsstaticcms',
+                    Bucket: process.env.DEFINITIONS_BUCKET,
                     Key: wdef.html
                 }, (err, data) => {
                     if (err) {
@@ -137,7 +137,7 @@ exports.handler = (event, context, callback) => {
         return new Promise((resolve, reject) => {
             dynamodb.batchGetItem({
                 RequestItems: {
-                    'static-cms-widgets': {
+                    [process.env.WIDGETS_TABLE_NAME]: {
                         Keys: slugs.map(slug => {
                             return {
                                 'slug': {
@@ -151,7 +151,7 @@ exports.handler = (event, context, callback) => {
                 if (err) {
                     reject(err);
                 } else {
-                    Promise.all(data.Responses['static-cms-widgets'].map(widget => {
+                    Promise.all(data.Responses[process.env.WIDGETS_TABLE_NAME].map(widget => {
                         return getWidgetHTML({
                             slug: widget.slug.S,
                             name: widget.name.S,
@@ -173,7 +173,7 @@ exports.handler = (event, context, callback) => {
                     S: slug
                 }
             }, 
-            TableName: 'static-cms-pages'
+            TableName: process.env.PAGES_TABLE_NAME
         }, function(err, data) {
             if (err || !data.Item) {
                 http404();

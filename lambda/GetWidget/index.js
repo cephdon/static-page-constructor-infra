@@ -11,7 +11,7 @@ exports.handler = (event, context, callback) => {
                     S: slug
                 }
             }, 
-            TableName: "static-cms-pages"
+            TableName: process.env.WIDGETS_TABLE_NAME
         };
 
         dynamodb.getItem(params, function(err, data) {
@@ -24,16 +24,16 @@ exports.handler = (event, context, callback) => {
                     }
                 });
             } else {
-                const page = data.Item;
+                const definition = data.Item;
 
                 callback(null, {
                     statusCode: 200,
                     body: JSON.stringify({
-                        name: page.name.S,
-                        slug: page.slug.S,
-                        template: page.template ? page.template.S : 'main',
-                        configuration: JSON.parse(page.configuration.S),
-                        props: page.props ? JSON.parse(page.props.S) : {}
+                        name: definition.name.S,
+                        slug: definition.slug.S,
+                        previewImage: definition.previewImage.S,
+                        props: JSON.parse(definition.props.S),
+                        layout: JSON.parse(definition.layout.S),
                     }),
                     headers: {
                         'Access-Control-Allow-Origin': '*'
