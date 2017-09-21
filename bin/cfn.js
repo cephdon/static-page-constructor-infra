@@ -472,7 +472,7 @@ const attachS3Buckets = (cfn) => {
 
 const output = (cfn) => {
 	fs.writeFileSync(
-		path.join(__dirname, 'static-page-constructor.json'), 
+		path.join(__dirname, '../static-page-constructor.json'), 
 		JSON.stringify(cfn, null, 2), 
 		'utf-8'
 	);
