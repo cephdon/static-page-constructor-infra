@@ -7,6 +7,12 @@ const { lambdas } = require('../lambda');
 
 const getProjectWideTags = () => [ { Key: 'Project', Value: 'Static Page Constructor' } ];
 
+const getProjectWideTagsAsMap = () => {
+	return {
+		Project: 'Static Page Constructor'
+	}
+};
+
 const getInitialCfnTemplate = () => {
 	return Promise.resolve({
 		AWSTemplateFormatVersion: '2010-09-09',
@@ -14,6 +20,8 @@ const getInitialCfnTemplate = () => {
 		Parameters: {
 		},
 		Resources: {
+		},
+		Outputs: {
 		}
 	});
 };
@@ -467,7 +475,156 @@ const attachS3Buckets = (cfn) => {
 		}
 	};
 
-	return Promise.resolve(cfn);	
+	cfn.Resources[`CMSSiteStore`] = {
+		Type: 'AWS::S3::Bucket',
+		Properties: {
+			Tags: getProjectWideTags()
+		}
+	};
+
+	return Promise.resolve(cfn);
+};
+
+const attachCognitoUserPool = (cfn) => {
+	cfn.Resources.UserPool = {
+		Type: 'AWS::Cognito::UserPool',
+		Properties: {
+			AdminCreateUserConfig: {
+				AllowAdminCreateUserOnly: true
+
+			},
+			AliasAttributes: ['email'],
+			MfaConfiguration: 'OFF',
+			UserPoolTags: getProjectWideTagsAsMap()
+		}
+	};
+
+	return Promise.resolve(cfn);
+};
+
+const attachCognitoUserPoolClient = (cfn) => {
+	cfn.Resources.UserPoolClient = {
+		Type: 'AWS::Cognito::UserPoolClient',
+		Properties: {
+			GenerateSecret: false,
+			UserPoolId: {
+				Ref: 'UserPool'
+			}
+		}
+	};
+
+	return Promise.resolve(cfn);
+};
+
+const attachCognitoIdentityPool = (cfn) => {
+	cfn.Resources.IdentityPool = {
+		Type: 'AWS::Cognito::IdentityPool',
+		Properties: {
+			AllowUnauthenticatedIdentities: false,
+			CognitoIdentityProviders: [
+				{
+					ClientId: {
+						Ref: 'UserPoolClient'
+					},
+					ProviderName: {
+						'Fn::GetAtt': ['UserPool', 'ProviderName']
+					}
+				}
+			]
+		}
+	};
+
+	return Promise.resolve(cfn);
+};
+
+const attachIdentityPoolRoleMapping = (cfn) => {
+	cfn.Resources.IdentityPoolRoleMapping = {
+		Type: 'AWS::Cognito::IdentityPoolRoleAttachment',
+		Properties: {
+			IdentityPoolId: {
+				Ref: 'IdentityPool'
+			},
+			Roles: {
+				authenticated: { 'Fn::GetAtt': ['CognitoAuthorizedRole', 'Arn'] },
+				unauthenticated: { 'Fn::GetAtt': ['CognitoUnAuthorizedRole', 'Arn'] }
+			}
+		}
+	};
+
+	return Promise.resolve(cfn);
+};
+
+const attachCognitoRoles = (cfn) => {
+	cfn.Resources.CognitoUnAuthorizedRole = {
+		Type: 'AWS::IAM::Role',
+		Properties: {
+			AssumeRolePolicyDocument: {
+				Version: '2012-10-17',
+				Statement: [
+					{
+						Effect: 'Allow',
+						Principal: { Federated: 'cognito-identity.amazonaws.com' },
+						Action: ['sts:AssumeRoleWithWebIdentity'],
+						Condition: {
+							StringEquals: {
+								'cognito-identity.amazonaws.com:aud': { Ref: 'IdentityPool' }
+							},
+							'ForAnyValue:StringLike': {
+								'cognito-identity.amazonaws.com:amr': 'unauthenticated'
+							} 
+						}
+					}
+				]
+			},
+			Policies: []
+		}
+	};
+
+	cfn.Resources.CognitoAuthorizedRole = {
+		Type: 'AWS::IAM::Role',
+		Properties: {
+			AssumeRolePolicyDocument: {
+				Version: '2012-10-17',
+				Statement: [
+					{
+						Effect: 'Allow',
+						Principal: { Federated: 'cognito-identity.amazonaws.com' },
+						Action: ['sts:AssumeRoleWithWebIdentity'],
+						Condition: {
+							StringEquals: {
+								'cognito-identity.amazonaws.com:aud': { Ref: 'IdentityPool' }
+							},
+							'ForAnyValue:StringLike': {
+								'cognito-identity.amazonaws.com:amr': 'authenticated'
+							} 
+						}
+					}
+				]
+			},
+			Policies: []
+		}
+	};
+
+	return Promise.resolve(cfn);
+}
+
+const attachOutput = (cfn) => {
+	cfn.Outputs[`UserPoolId`] = {
+		Value: { Ref: 'UserPool' },
+		Export: { Name: 'UserPool::Id' }
+	};
+
+	cfn.Outputs[`UserPoolClientId`] = {
+		Value: { Ref: 'UserPoolClient' },
+		Export: { Name: 'UserPoolClient::Id' }
+	};
+
+	cfn.Outputs[`IdentityPoolId`] = {
+		Value: { Ref: 'IdentityPool' },
+		Export: { Name: 'IdentityPool::Id' }
+	};
+
+	return Promise.resolve(cfn);
 };
 
 const output = (cfn) => {
@@ -492,4 +649,10 @@ getInitialCfnTemplate()
 	.then(enableApiCors)
 	.then(attachDynamoTables)
 	.then(attachS3Buckets)
+	.then(attachCognitoUserPool)
+	.then(attachCognitoUserPoolClient)
+	.then(attachCognitoIdentityPool)
+	.then(attachCognitoRoles)
+	.then(attachIdentityPoolRoleMapping)
+	.then(attachOutput)
 	.then(output);
