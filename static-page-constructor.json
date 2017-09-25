@@ -2153,6 +2153,53 @@
         }
       }
     },
+    "UsagePlan": {
+      "Type": "AWS::ApiGateway::UsagePlan",
+      "Properties": {
+        "ApiStages": [
+          {
+            "ApiId": {
+              "Ref": "Api"
+            },
+            "Stage": {
+              "Ref": "ApiStage"
+            }
+          }
+        ],
+        "Description": "Static Page Constructor Usage Plan"
+      }
+    },
+    "ApiKey": {
+      "Type": "AWS::ApiGateway::ApiKey",
+      "DependsOn": [
+        "ApiDeployment",
+        "ApiStage"
+      ],
+      "Description": "Static Page Constructor API Key V1",
+      "Properties": {
+        "Enabled": true,
+        "StageKeys": [
+          {
+            "RestApiId": {
+              "Ref": "Api"
+            },
+            "StageName": "dev"
+          }
+        ]
+      }
+    },
+    "UsagePlanKey": {
+      "Type": "AWS::ApiGateway::UsagePlanKey",
+      "Properties": {
+        "KeyId": {
+          "Ref": "ApiKey"
+        },
+        "KeyType": "API_KEY",
+        "UsagePlanId": {
+          "Ref": "UsagePlan"
+        }
+      }
+    },
     "PageTemplates": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
@@ -2398,6 +2445,14 @@
       },
       "Export": {
         "Name": "IdentityPool::Id"
+      }
+    },
+    "ApiKey": {
+      "Value": {
+        "Ref": "ApiKey"
+      },
+      "Export": {
+        "Name": "ApiKey::Id"
       }
     }
   }

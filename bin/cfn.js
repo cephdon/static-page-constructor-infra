@@ -390,6 +390,47 @@ const enableApiCors = (cfn) => {
 	return Promise.resolve(cfn);
 };
 
+const attachApiKey = (cfn) => {
+	cfn.Resources.UsagePlan = {
+		Type: 'AWS::ApiGateway::UsagePlan',
+		Properties: {
+			ApiStages: [
+				{
+					ApiId: {Ref: 'Api'},
+					Stage: {Ref: 'ApiStage'}
+				}
+			],
+			Description: 'Static Page Constructor Usage Plan'
+		}
+	};
+
+	cfn.Resources.ApiKey = {
+		Type: 'AWS::ApiGateway::ApiKey',
+		DependsOn: ['ApiDeployment', 'ApiStage'],
+		Description: 'Static Page Constructor API Key V1',
+		Properties: {
+			Enabled: true,
+			StageKeys: [
+				{
+					RestApiId: { Ref: 'Api' },
+					StageName: 'dev'
+				}
+			]
+		}
+	};
+
+	cfn.Resources.UsagePlanKey = {
+		Type: 'AWS::ApiGateway::UsagePlanKey',
+		Properties: {
+			KeyId: {Ref: 'ApiKey'},
+			KeyType: 'API_KEY',
+			UsagePlanId: {Ref: 'UsagePlan'}
+		}
+	}
+
+	return Promise.resolve(cfn);
+};
+
 const attachDynamoTables = (cfn) => {
 	cfn.Resources[`PageTemplates`] = {
 		Type: 'AWS::DynamoDB::Table',
@@ -461,21 +502,21 @@ const attachDynamoTables = (cfn) => {
 }
 
 const attachS3Buckets = (cfn) => {
-	cfn.Resources[`DefinitionsStore`] = {
+	cfn.Resources.DefinitionsStore = {
 		Type: 'AWS::S3::Bucket',
 		Properties: {
 			Tags: getProjectWideTags()
 		}
 	};
 
-	cfn.Resources[`TargetSiteStore`] = {
+	cfn.Resources.TargetSiteStore = {
 		Type: 'AWS::S3::Bucket',
 		Properties: {
 			Tags: getProjectWideTags()
 		}
 	};
 
-	cfn.Resources[`CMSSiteStore`] = {
+	cfn.Resources.CMSSiteStore = {
 		Type: 'AWS::S3::Bucket',
 		Properties: {
 			Tags: getProjectWideTags()
@@ -609,20 +650,25 @@ const attachCognitoRoles = (cfn) => {
 }
 
 const attachOutput = (cfn) => {
-	cfn.Outputs[`UserPoolId`] = {
+	cfn.Outputs.UserPoolId = {
 		Value: { Ref: 'UserPool' },
 		Export: { Name: 'UserPool::Id' }
 	};
 
-	cfn.Outputs[`UserPoolClientId`] = {
+	cfn.Outputs.UserPoolClientId = {
 		Value: { Ref: 'UserPoolClient' },
 		Export: { Name: 'UserPoolClient::Id' }
 	};
 
-	cfn.Outputs[`IdentityPoolId`] = {
+	cfn.Outputs.IdentityPoolId = {
 		Value: { Ref: 'IdentityPool' },
 		Export: { Name: 'IdentityPool::Id' }
 	};
+
+	cfn.Outputs.ApiKey = {
+		Value: { Ref: 'ApiKey' },
+		Export: { Name: 'ApiKey::Id' }
+	}
 
 	return Promise.resolve(cfn);
 };
@@ -647,6 +693,7 @@ getInitialCfnTemplate()
 	.then(attachApiResources)
 	.then(attachApiMethods)
 	.then(enableApiCors)
+	.then(attachApiKey)
 	.then(attachDynamoTables)
 	.then(attachS3Buckets)
 	.then(attachCognitoUserPool)
