@@ -502,24 +502,54 @@ const attachDynamoTables = (cfn) => {
 }
 
 const attachS3Buckets = (cfn) => {
+	const corsConfiguration = () => {
+		return {
+			CorsRules: [
+				{
+					AllowedHeaders: ['*'],
+					AllowedMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+					AllowedOrigins: ['*'],
+					ExposedHeaders: ['ETag'],
+					MaxAge: 3000
+				}
+			]
+		};
+	};
+
+	const websiteConfiguration = () => {
+		return {
+			IndexDocument: 'index.html',
+			ErrorDocument: 'index.html'
+		};
+	};
+
 	cfn.Resources.DefinitionsStore = {
 		Type: 'AWS::S3::Bucket',
 		Properties: {
-			Tags: getProjectWideTags()
+			Tags: getProjectWideTags(),
+			AccessControl: 'PublicRead',
+			CorsConfiguration: corsConfiguration(),
+			WebsiteConfiguration: websiteConfiguration(),
 		}
 	};
 
 	cfn.Resources.TargetSiteStore = {
 		Type: 'AWS::S3::Bucket',
 		Properties: {
-			Tags: getProjectWideTags()
+			Tags: getProjectWideTags(),
+			AccessControl: 'PublicRead',
+			CorsConfiguration: corsConfiguration(),
+			WebsiteConfiguration: websiteConfiguration(),
 		}
 	};
 
 	cfn.Resources.CMSSiteStore = {
 		Type: 'AWS::S3::Bucket',
 		Properties: {
-			Tags: getProjectWideTags()
+			Tags: getProjectWideTags(),
+			AccessControl: 'PublicRead',
+			CorsConfiguration: corsConfiguration(),
+			WebsiteConfiguration: websiteConfiguration(),
 		}
 	};
 
@@ -642,7 +672,66 @@ const attachCognitoRoles = (cfn) => {
 					}
 				]
 			},
-			Policies: []
+			Policies: [
+				{
+					PolicyName: 'LogsPolicy',
+					PolicyDocument: {
+						Version: '2012-10-17',
+						Statement: [
+							{
+								Effect: 'Allow',
+								Action: [
+									'logs:CreateLogGroup',
+									'logs:CreateLogStream',
+									'logs:DescribeLogGroups',
+									'logs:DescribeLogStreams',
+									'logs:PutLogEvents',
+									'logs:GetLogEvents',
+									'logs:FilterLogEvents'
+								],
+								Resource: '*'
+							}
+						]
+					}
+				},
+				{
+					PolicyName: 'InvokePolicy',
+					PolicyDocument: {
+						Version: '2012-10-17',
+						Statement: [
+							{
+								Effect: 'Allow',
+								Action: [
+									'execute-api:GET',
+									'execute-api:Invoke'
+								],
+								Resource: '*'
+							}
+						]
+					}
+				},
+				{
+					PolicyName: 'BucketsPolicy',
+					PolicyDocument: {
+						Version: '2012-10-17',
+						Statement: [
+							{
+								Effect: 'Allow',
+								Action: [
+									's3:Put*',
+									's3:ListBucket',
+									's3:*MultipartUpload*'
+								],
+								Resource: [
+									{'Fn::Join' : ['',[ 'arn:aws:s3:::', { 'Ref': 'DefinitionsStore' }, '/*' ] ]},
+									{'Fn::Join' : ['',[ 'arn:aws:s3:::', { 'Ref': 'TargetSiteStore' }, '/*' ] ]},
+									{'Fn::Join' : ['',[ 'arn:aws:s3:::', { 'Ref': 'CMSSiteStore' }, '/*' ] ]}
+								]
+							}
+						]
+					}
+				}
+			]
 		}
 	};
 
