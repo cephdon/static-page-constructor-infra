@@ -78,7 +78,7 @@
             }
           },
           {
-            "PolicyName": "AllowAccessToDefinitionsStore",
+            "PolicyName": "AllowAccessToS3",
             "PolicyDocument": {
               "Version": "2012-10-17",
               "Statement": [
@@ -86,9 +86,15 @@
                   "Action": "s3:*",
                   "Effect": "Allow",
                   "Resource": {
-                    "Fn::GetAtt": [
-                      "DefinitionsStore",
-                      "Arn"
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:s3:::",
+                        {
+                          "Ref": "TargetSiteStore"
+                        },
+                        "/*"
+                      ]
                     ]
                   }
                 }
@@ -96,19 +102,22 @@
             }
           },
           {
-            "PolicyName": "AllowAccessToTargetSiteStore",
+            "PolicyName": "LogsPolicy",
             "PolicyDocument": {
               "Version": "2012-10-17",
               "Statement": [
                 {
-                  "Action": "s3:*",
                   "Effect": "Allow",
-                  "Resource": {
-                    "Fn::GetAtt": [
-                      "TargetSiteStore",
-                      "Arn"
-                    ]
-                  }
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:DescribeLogGroups",
+                    "logs:DescribeLogStreams",
+                    "logs:PutLogEvents",
+                    "logs:GetLogEvents",
+                    "logs:FilterLogEvents"
+                  ],
+                  "Resource": "*"
                 }
               ]
             }
@@ -528,7 +537,7 @@
         },
         "Code": {
           "S3Bucket": "static-page-constructor",
-          "S3Key": "lambdas/PublishPage@1.0.0.zip"
+          "S3Key": "lambdas/PublishPage@1.0.3.zip"
         },
         "Tags": [
           {

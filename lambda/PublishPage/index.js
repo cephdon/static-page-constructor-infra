@@ -77,8 +77,9 @@ exports.handler = (event, context, callback) => {
             s3.putObject({
                 Body: body,
                 Bucket: process.env.TARGET_SITE_BUCKET,
-                Key: `${slug}/index.html`,
-                ContentType: 'text/html'
+                Key: slug === 'index' ? 'index.html' : `${slug}/index.html`,
+                ContentType: 'text/html; charset=utf-8',
+                ContentEncoding: 'utf8'
             }, (err, data) => err ? reject() : resolve());
         });
     };
@@ -91,7 +92,7 @@ exports.handler = (event, context, callback) => {
             }, (err, data) => {
                 err ? reject(err) : resolve(data.Body.toString('utf-8'))
             });
-        });     
+        });
     };
 
     const getWidgetsDefinitionsWithHTML = (configuration) => {

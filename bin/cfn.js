@@ -13,6 +13,27 @@ const getProjectWideTagsAsMap = () => {
 	}
 };
 
+const _logsPolicyDocument = () => {
+	return {
+		Version: '2012-10-17',
+		Statement: [
+			{
+				Effect: 'Allow',
+				Action: [
+					'logs:CreateLogGroup',
+					'logs:CreateLogStream',
+					'logs:DescribeLogGroups',
+					'logs:DescribeLogStreams',
+					'logs:PutLogEvents',
+					'logs:GetLogEvents',
+					'logs:FilterLogEvents'
+				],
+				Resource: '*'
+			}
+		]
+	};	
+};
+
 const getInitialCfnTemplate = () => {
 	return Promise.resolve({
 		AWSTemplateFormatVersion: '2010-09-09',
@@ -87,7 +108,7 @@ const attachLambdaExecutionRole = (cfn) => {
 					}
 				},
 				{
-					PolicyName: 'AllowAccessToDefinitionsStore',
+					PolicyName: 'AllowAccessToS3',
 					PolicyDocument: {
 						Version: '2012-10-17',
 						Statement: [
@@ -95,27 +116,17 @@ const attachLambdaExecutionRole = (cfn) => {
 								Action: 's3:*',
 								Effect: 'Allow',
 								Resource: {
-									'Fn::GetAtt': ['DefinitionsStore', 'Arn']
+									'Fn::Join' : ['', ['arn:aws:s3:::', { 'Ref' : 'DefinitionsStore' },'/*']],
+									'Fn::Join' : ['', ['arn:aws:s3:::', { 'Ref' : 'TargetSiteStore' },'/*']],
 								}
 							}
 						]
 					}
 				},
 				{
-					PolicyName: 'AllowAccessToTargetSiteStore',
-					PolicyDocument: {
-						Version: '2012-10-17',
-						Statement: [
-							{
-								Action: 's3:*',
-								Effect: 'Allow',
-								Resource: {
-									'Fn::GetAtt': ['TargetSiteStore', 'Arn']
-								}
-							}
-						]
-					}
-				}
+					PolicyName: 'LogsPolicy',
+					PolicyDocument: _logsPolicyDocument()
+				},
 			]
 		}
 	}
