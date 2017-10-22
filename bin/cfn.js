@@ -501,6 +501,68 @@ const attachDynamoTables = (cfn) => {
 	return Promise.resolve(cfn);
 }
 
+const attachS3BucketPolicy = (cfn) => {
+	const getPolicyDocumentStatements = (bucket) => {
+		return [
+			{
+				Effect: 'Allow',
+				Principal: '*',
+				Action: 's3:GetObject',
+				Resource: { 
+					'Fn::Join' : [
+						'', 
+						[
+							'arn:aws:s3:::', 
+							{ 'Ref' : bucket }, 
+							'/*'
+						]
+					]
+				},
+				//Condition:{
+				//	StringLike:{
+				//		'aws:Referer':[
+				//			'http://www.example.com/*',
+				//			'http://example.com/*'
+				//		]
+				//	}
+				//}
+			}
+		];
+	};
+
+	cfn.Resources.DefinitionsStoreBucketPolicy = {
+		Type: 'AWS::S3::BucketPolicy',
+		Properties: {
+			Bucket: { Ref: 'DefinitionsStore' },
+			PolicyDocument: {
+				Statement: getPolicyDocumentStatements('DefinitionsStore')
+			}
+		}
+	};
+
+	cfn.Resources.TargetSiteStoreBucketPolicy = {
+		Type: 'AWS::S3::BucketPolicy',
+		Properties: {
+			Bucket: { Ref: 'TargetSiteStore' },
+			PolicyDocument: {
+				Statement: getPolicyDocumentStatements('TargetSiteStore')
+			}
+		}
+	};
+
+	cfn.Resources.CMSSiteStoreBucketPolicy = {
+		Type: 'AWS::S3::BucketPolicy',
+		Properties: {
+			Bucket: { Ref: 'CMSSiteStore' },
+			PolicyDocument: {
+				Statement: getPolicyDocumentStatements('CMSSiteStore')
+			}
+		}
+	};
+
+	return Promise.resolve(cfn);
+}
+
 const attachS3Buckets = (cfn) => {
 	const corsConfiguration = () => {
 		return {
@@ -784,6 +846,7 @@ getInitialCfnTemplate()
 	.then(enableApiCors)
 	.then(attachApiKey)
 	.then(attachDynamoTables)
+	.then(attachS3BucketPolicy)
 	.then(attachS3Buckets)
 	.then(attachCognitoUserPool)
 	.then(attachCognitoUserPoolClient)
