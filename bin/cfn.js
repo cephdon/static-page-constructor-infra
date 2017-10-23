@@ -39,6 +39,15 @@ const getInitialCfnTemplate = () => {
 		AWSTemplateFormatVersion: '2010-09-09',
 		Description: 'Static Page Constructor Stack',
 		Parameters: {
+			DomainName: {
+				Type: 'String',
+				Description: 'domain.tld'
+			},
+			OriginAccessIdentity: {
+				Type: 'String',
+				Default: 'E3ICJQOE52KJYP',
+				Description: 'Origin Access Identity Id'
+			},
 		},
 		Resources: {
 		},
@@ -556,7 +565,28 @@ const attachS3BucketPolicy = (cfn) => {
 		Properties: {
 			Bucket: { Ref: 'TargetSiteStore' },
 			PolicyDocument: {
-				Statement: getPolicyDocumentStatements('TargetSiteStore')
+				Statement: [
+					...getPolicyDocumentStatements('TargetSiteStore'),
+					{
+						Effect: 'Allow',
+						Principal: {
+							AWS: {
+								'Fn::Join' : ['', ['arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ', { Ref : 'OriginAccessIdentity' }]]
+							}
+						},
+						Action: 's3:GetObject',
+						Resource: { 
+							'Fn::Join' : [
+								'', 
+								[
+									'arn:aws:s3:::', 
+									{ 'Ref' : 'TargetSiteStore' }, 
+									'/*'
+								]
+							]
+						}
+					}
+				]
 			}
 		}
 	};
@@ -568,6 +598,67 @@ const attachS3BucketPolicy = (cfn) => {
 			PolicyDocument: {
 				Statement: getPolicyDocumentStatements('CMSSiteStore')
 			}
+		}
+	};
+
+	return Promise.resolve(cfn);
+}
+
+const attachDistribution = (cfn) => {
+	const getDistributionConfig = (bucket) => {
+		return {
+			Aliases: [
+				{ Ref: 'DomainName' }
+			],
+			Comment: `${getProjectWideTagsAsMap().Project} ${bucket} Distribution`,
+			DefaultRootObject: 'index.html',
+			HttpVersion: 'http2',
+			Enabled: true,
+			Origins: [
+				{
+					DomainName: {
+						'Fn::GetAtt': [ bucket, 'DomainName' ]
+					},
+					Id: { 'Ref': bucket },
+					S3OriginConfig: {
+						OriginAccessIdentity: {
+							'Fn::Join' : ['', ['origin-access-identity/cloudfront/', { Ref : 'OriginAccessIdentity' }]]
+						}
+					}
+				}
+			],
+
+			PriceClass: 'PriceClass_100',
+			DefaultCacheBehavior: {
+				Compress: true,
+				AllowedMethods: [
+					'GET',
+					'HEAD',
+					'OPTIONS'
+				],
+				TargetOriginId: { 'Ref': bucket },
+				ForwardedValues: {
+					QueryString: 'false',
+					Cookies: {
+						Forward: 'none'
+					}
+				},
+				ViewerProtocolPolicy: 'allow-all'
+			},
+			CustomErrorResponses: [
+				{
+					ErrorCode: 404,
+					ResponseCode: 200,
+					ResponsePagePath: '/index.html'
+				}
+			]
+		};
+	};
+
+	cfn.Resources.TargetSiteStoreDistribution = {
+		Type: 'AWS::CloudFront::Distribution',
+		Properties: {
+			DistributionConfig: getDistributionConfig('TargetSiteStore')
 		}
 	};
 
@@ -633,9 +724,9 @@ const attachCognitoUserPool = (cfn) => {
 	cfn.Resources.UserPool = {
 		Type: 'AWS::Cognito::UserPool',
 		Properties: {
+			UserPoolName: {'Fn::Join' : [' ',[ 'Static Page Constructor UserPool for', { 'Ref': 'DomainName' } ] ]},
 			AdminCreateUserConfig: {
 				AllowAdminCreateUserOnly: true
-
 			},
 			AliasAttributes: ['email'],
 			MfaConfiguration: 'OFF',
@@ -859,6 +950,7 @@ getInitialCfnTemplate()
 	.then(attachDynamoTables)
 	.then(attachS3BucketPolicy)
 	.then(attachS3Buckets)
+	.then(attachDistribution)
 	.then(attachCognitoUserPool)
 	.then(attachCognitoUserPoolClient)
 	.then(attachCognitoIdentityPool)

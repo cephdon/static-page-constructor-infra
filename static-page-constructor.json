@@ -1,7 +1,17 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Static Page Constructor Stack",
-  "Parameters": {},
+  "Parameters": {
+    "DomainName": {
+      "Type": "String",
+      "Description": "domain.tld"
+    },
+    "OriginAccessIdentity": {
+      "Type": "String",
+      "Default": "E3ICJQOE52KJYP",
+      "Description": "Origin Access Identity Id"
+    }
+  },
   "Resources": {
     "LambdaExecutionRole": {
       "Type": "AWS::IAM::Role",
@@ -2325,6 +2335,35 @@
                   ]
                 ]
               }
+            },
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ",
+                      {
+                        "Ref": "OriginAccessIdentity"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "Action": "s3:GetObject",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "TargetSiteStore"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
             }
           ]
         }
@@ -2473,9 +2512,88 @@
         }
       }
     },
+    "TargetSiteStoreDistribution": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Aliases": [
+            {
+              "Ref": "DomainName"
+            }
+          ],
+          "Comment": "Static Page Constructor TargetSiteStore Distribution",
+          "DefaultRootObject": "index.html",
+          "HttpVersion": "http2",
+          "Enabled": true,
+          "Origins": [
+            {
+              "DomainName": {
+                "Fn::GetAtt": [
+                  "TargetSiteStore",
+                  "DomainName"
+                ]
+              },
+              "Id": {
+                "Ref": "TargetSiteStore"
+              },
+              "S3OriginConfig": {
+                "OriginAccessIdentity": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "origin-access-identity/cloudfront/",
+                      {
+                        "Ref": "OriginAccessIdentity"
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ],
+          "PriceClass": "PriceClass_100",
+          "DefaultCacheBehavior": {
+            "Compress": true,
+            "AllowedMethods": [
+              "GET",
+              "HEAD",
+              "OPTIONS"
+            ],
+            "TargetOriginId": {
+              "Ref": "TargetSiteStore"
+            },
+            "ForwardedValues": {
+              "QueryString": "false",
+              "Cookies": {
+                "Forward": "none"
+              }
+            },
+            "ViewerProtocolPolicy": "allow-all"
+          },
+          "CustomErrorResponses": [
+            {
+              "ErrorCode": 404,
+              "ResponseCode": 200,
+              "ResponsePagePath": "/index.html"
+            }
+          ]
+        }
+      }
+    },
     "UserPool": {
       "Type": "AWS::Cognito::UserPool",
       "Properties": {
+        "UserPoolName": {
+          "Fn::Join": [
+            " ",
+            [
+              "Static Page Constructor UserPool for",
+              {
+                "Ref": "DomainName"
+              }
+            ]
+          ]
+        },
         "AdminCreateUserConfig": {
           "AllowAdminCreateUserOnly": true
         },
