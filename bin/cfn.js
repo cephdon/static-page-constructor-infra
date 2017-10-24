@@ -209,7 +209,7 @@ const attachApi = (cfn) => {
 	cfn.Resources.Api = {
 		Type: 'AWS::ApiGateway::RestApi',
 		Properties: {
-			Name: 'Static Page Constructor Api',
+			Name: {'Fn::Join' : [' ',[ 'Static Page Constructor Api for', { 'Ref': 'DomainName' } ] ]},
 			Description: 'Api used by Static Page Constructor CMS',
 			FailOnWarnings: true
 		}
