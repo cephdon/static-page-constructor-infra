@@ -643,7 +643,7 @@ const attachDistribution = (cfn) => {
 						Forward: 'none'
 					}
 				},
-				ViewerProtocolPolicy: 'allow-all'
+				ViewerProtocolPolicy: 'redirect-to-https'
 			},
 			CustomErrorResponses: [
 				{

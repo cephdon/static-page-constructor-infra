@@ -547,7 +547,7 @@
         },
         "Code": {
           "S3Bucket": "static-page-constructor",
-          "S3Key": "lambdas/PublishPage@1.0.3.zip"
+          "S3Key": "lambdas/PublishPage@1.0.4.zip"
         },
         "Tags": [
           {
@@ -958,7 +958,17 @@
     "Api": {
       "Type": "AWS::ApiGateway::RestApi",
       "Properties": {
-        "Name": "Static Page Constructor Api",
+        "Name": {
+          "Fn::Join": [
+            " ",
+            [
+              "Static Page Constructor Api for",
+              {
+                "Ref": "DomainName"
+              }
+            ]
+          ]
+        },
         "Description": "Api used by Static Page Constructor CMS",
         "FailOnWarnings": true
       }
@@ -2568,7 +2578,7 @@
                 "Forward": "none"
               }
             },
-            "ViewerProtocolPolicy": "allow-all"
+            "ViewerProtocolPolicy": "redirect-to-https"
           },
           "CustomErrorResponses": [
             {

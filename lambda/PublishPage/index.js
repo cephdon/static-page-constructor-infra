@@ -40,7 +40,7 @@ exports.handler = (event, context, callback) => {
                 let html = def.html;
 
                 Object.keys(def.props).forEach(propName => {
-                    html = html.replace(`{{ ${propName} }}`, conf.props[propName]);
+                    html = html.replace(new RegExp(`{{ ${propName} }}`, 'g'), conf.props[propName]);
                 });
 
                 if (conf.areas) {
@@ -60,7 +60,7 @@ exports.handler = (event, context, callback) => {
 
                 Object.keys(props).forEach(key => {
                     body = body.replace(
-                        `{{ page.${key} }}`,
+                        new RegExp(`{{ page.${key} }}`, 'g'),
                         props[key]
                     );
                 });
