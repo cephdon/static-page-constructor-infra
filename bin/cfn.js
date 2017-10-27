@@ -643,11 +643,16 @@ const attachDistribution = (cfn) => {
 						Forward: 'none'
 					}
 				},
-				ViewerProtocolPolicy: 'redirect-to-https'
+				ViewerProtocolPolicy: 'allow-all'
 			},
 			CustomErrorResponses: [
 				{
 					ErrorCode: 404,
+					ResponseCode: 200,
+					ResponsePagePath: '/index.html'
+				},
+				{
+					ErrorCode: 403,
 					ResponseCode: 200,
 					ResponsePagePath: '/index.html'
 				}

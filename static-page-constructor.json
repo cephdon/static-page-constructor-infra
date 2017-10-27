@@ -2578,7 +2578,7 @@
                 "Forward": "none"
               }
             },
-            "ViewerProtocolPolicy": "redirect-to-https"
+            "ViewerProtocolPolicy": "allow-all"
           },
           "CustomErrorResponses": [
             {
