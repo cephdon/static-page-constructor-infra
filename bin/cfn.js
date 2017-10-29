@@ -594,31 +594,53 @@ const attachS3Buckets = (cfn) => {
 
 	cfn.Resources.DefinitionsStore = {
 		Type: 'AWS::S3::Bucket',
+		DeletionPolicy: 'Retain',
 		Properties: {
 			Tags: getProjectWideTags(),
 			AccessControl: 'PublicRead',
 			CorsConfiguration: corsConfiguration(),
 			WebsiteConfiguration: websiteConfiguration(),
+			BucketName: {
+				'Fn::Join' : [
+					'.',
+					[
+						'definitions',
+						{ Ref: 'DomainName' }
+					]
+				]
+			}
 		}
 	};
 
 	cfn.Resources.TargetSiteStore = {
 		Type: 'AWS::S3::Bucket',
+		DeletionPolicy: 'Retain',
 		Properties: {
 			Tags: getProjectWideTags(),
 			AccessControl: 'PublicRead',
 			CorsConfiguration: corsConfiguration(),
 			WebsiteConfiguration: websiteConfiguration(),
+			BucketName: {Ref: 'DomainName'}
 		}
 	};
 
 	cfn.Resources.CMSSiteStore = {
 		Type: 'AWS::S3::Bucket',
+		DeletionPolicy: 'Retain',
 		Properties: {
 			Tags: getProjectWideTags(),
 			AccessControl: 'PublicRead',
 			CorsConfiguration: corsConfiguration(),
 			WebsiteConfiguration: websiteConfiguration(),
+			BucketName: {
+				'Fn::Join' : [
+					'.',
+					[
+						'spc',
+						{ Ref: 'DomainName' }
+					]
+				]
+			}
 		}
 	};
 

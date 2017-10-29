@@ -5,11 +5,6 @@
     "DomainName": {
       "Type": "String",
       "Description": "domain.tld"
-    },
-    "OriginAccessIdentity": {
-      "Type": "String",
-      "Default": "E3ICJQOE52KJYP",
-      "Description": "Origin Access Identity Id"
     }
   },
   "Resources": {
@@ -2345,35 +2340,6 @@
                   ]
                 ]
               }
-            },
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "AWS": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ",
-                      {
-                        "Ref": "OriginAccessIdentity"
-                      }
-                    ]
-                  ]
-                }
-              },
-              "Action": "s3:GetObject",
-              "Resource": {
-                "Fn::Join": [
-                  "",
-                  [
-                    "arn:aws:s3:::",
-                    {
-                      "Ref": "TargetSiteStore"
-                    },
-                    "/*"
-                  ]
-                ]
-              }
             }
           ]
         }
@@ -2410,6 +2376,7 @@
     },
     "DefinitionsStore": {
       "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
       "Properties": {
         "Tags": [
           {
@@ -2443,11 +2410,23 @@
         "WebsiteConfiguration": {
           "IndexDocument": "index.html",
           "ErrorDocument": "index.html"
+        },
+        "BucketName": {
+          "Fn::Join": [
+            ".",
+            [
+              "definitions",
+              {
+                "Ref": "DomainName"
+              }
+            ]
+          ]
         }
       }
     },
     "TargetSiteStore": {
       "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
       "Properties": {
         "Tags": [
           {
@@ -2481,11 +2460,15 @@
         "WebsiteConfiguration": {
           "IndexDocument": "index.html",
           "ErrorDocument": "index.html"
+        },
+        "BucketName": {
+          "Ref": "DomainName"
         }
       }
     },
     "CMSSiteStore": {
       "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
       "Properties": {
         "Tags": [
           {
@@ -2519,6 +2502,17 @@
         "WebsiteConfiguration": {
           "IndexDocument": "index.html",
           "ErrorDocument": "index.html"
+        },
+        "BucketName": {
+          "Fn::Join": [
+            ".",
+            [
+              "spc",
+              {
+                "Ref": "DomainName"
+              }
+            ]
+          ]
         }
       }
     },
