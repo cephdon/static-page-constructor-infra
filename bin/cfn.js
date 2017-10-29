@@ -832,23 +832,28 @@ const attachCognitoRoles = (cfn) => {
 const attachOutput = (cfn) => {
 	cfn.Outputs.UserPoolId = {
 		Value: { Ref: 'UserPool' },
-		Export: { Name: 'UserPool::Id' }
+		Export: {'Fn::Sub': '${AWS::StackName}-UserPoolId' }
 	};
 
 	cfn.Outputs.UserPoolClientId = {
 		Value: { Ref: 'UserPoolClient' },
-		Export: { Name: 'UserPoolClient::Id' }
+		Export: {'Fn::Sub': '${AWS::StackName}-UserPoolClientId' }
 	};
 
 	cfn.Outputs.IdentityPoolId = {
 		Value: { Ref: 'IdentityPool' },
-		Export: { Name: 'IdentityPool::Id' }
+		Export: {'Fn::Sub': '${AWS::StackName}-IdentityPoolId' }
 	};
 
 	cfn.Outputs.ApiKey = {
 		Value: { Ref: 'ApiKey' },
-		Export: { Name: 'ApiKey::Id' }
-	}
+		Export: {'Fn::Sub': '${AWS::StackName}-ApiKeyId' }
+	};
+
+	cfn.Outputs.AppBucket = {
+		Value: { Ref: 'App' },
+		Export: {'Fn::Sub': '${AWS::StackName}-AppBucket' }
+	};
 
 	return Promise.resolve(cfn);
 };
