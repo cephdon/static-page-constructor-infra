@@ -850,9 +850,34 @@ const attachOutput = (cfn) => {
 		Export: {'Fn::Sub': '${AWS::StackName}-ApiKeyId' }
 	};
 
-	cfn.Outputs.AppBucket = {
-		Value: { Ref: 'App' },
-		Export: {'Fn::Sub': '${AWS::StackName}-AppBucket' }
+	cfn.Outputs.DefinitionsStore = {
+		Value: { Ref: 'DefinitionsStore' },
+		Export: {'Fn::Sub': '${AWS::StackName}-DefinitionsStore' }
+	};
+
+	cfn.Outputs.TargetSiteStore = {
+		Value: { Ref: 'TargetSiteStore' },
+		Export: {'Fn::Sub': '${AWS::StackName}-TargetSiteStore' }
+	};
+
+	cfn.Outputs.CMSSiteStore = {
+		Value: { Ref: 'CMSSiteStore' },
+		Export: {'Fn::Sub': '${AWS::StackName}-CMSSiteStore' }
+	};
+
+	cfn.Outputs.DefinitionsStoreWebsiteURL = {
+		Value: {'Fn::GetAtt': ['DefinitionsStore', 'WebsiteURL']},
+		Export: {'Fn::Sub': '${AWS::StackName}-DefinitionsStoreWebsiteURL' }
+	};
+
+	cfn.Outputs.TargetSiteStoreWebsiteURL = {
+		Value: {'Fn::GetAtt': ['TargetSiteStore', 'WebsiteURL']},
+		Export: {'Fn::Sub': '${AWS::StackName}-TargetSiteStoreWebsiteURL' }
+	};
+
+	cfn.Outputs.CMSSiteStoreWebsiteURL = {
+		Value: {'Fn::GetAtt': ['CMSSiteStore', 'WebsiteURL']},
+		Export: {'Fn::Sub': '${AWS::StackName}-CMSSiteStoreWebsiteURL' }
 	};
 
 	return Promise.resolve(cfn);
