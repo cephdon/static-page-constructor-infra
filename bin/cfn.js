@@ -657,7 +657,17 @@ const attachCognitoUserPool = (cfn) => {
 			},
 			AliasAttributes: ['email'],
 			MfaConfiguration: 'OFF',
-			UserPoolTags: getProjectWideTagsAsMap()
+			UserPoolTags: getProjectWideTagsAsMap(),
+			AutoVerifiedAttributes: ['email'],
+			Policies: {
+				PasswordPolicy: {
+					MinimumLength: 8,
+					RequireLowercase: false,
+					RequireNumbers: false,
+					RequireSymbols: false,
+					RequireUppercase: false
+				}
+			}
 		}
 	};
 
@@ -832,52 +842,72 @@ const attachCognitoRoles = (cfn) => {
 const attachOutput = (cfn) => {
 	cfn.Outputs.UserPoolId = {
 		Value: { Ref: 'UserPool' },
-		Export: {'Fn::Sub': '${AWS::StackName}-UserPoolId' }
+		Export: {
+			Name: {'Fn::Sub': '${AWS::StackName}-UserPoolId' }
+		}
 	};
 
 	cfn.Outputs.UserPoolClientId = {
 		Value: { Ref: 'UserPoolClient' },
-		Export: {'Fn::Sub': '${AWS::StackName}-UserPoolClientId' }
+		Export: {
+			Name: {'Fn::Sub': '${AWS::StackName}-UserPoolClientId' }
+		}
 	};
 
 	cfn.Outputs.IdentityPoolId = {
 		Value: { Ref: 'IdentityPool' },
-		Export: {'Fn::Sub': '${AWS::StackName}-IdentityPoolId' }
+		Export: {
+			Name: {'Fn::Sub': '${AWS::StackName}-IdentityPoolId' }
+		}
 	};
 
 	cfn.Outputs.ApiKey = {
 		Value: { Ref: 'ApiKey' },
-		Export: {'Fn::Sub': '${AWS::StackName}-ApiKeyId' }
+		Export: {
+			Name: {'Fn::Sub': '${AWS::StackName}-ApiKeyId' }
+		}
 	};
 
 	cfn.Outputs.DefinitionsStore = {
 		Value: { Ref: 'DefinitionsStore' },
-		Export: {'Fn::Sub': '${AWS::StackName}-DefinitionsStore' }
+		Export: {
+			Name: {'Fn::Sub': '${AWS::StackName}-DefinitionsStore' }
+		}
 	};
 
 	cfn.Outputs.TargetSiteStore = {
 		Value: { Ref: 'TargetSiteStore' },
-		Export: {'Fn::Sub': '${AWS::StackName}-TargetSiteStore' }
+		Export: {
+			Name: {'Fn::Sub': '${AWS::StackName}-TargetSiteStore' }
+		}
 	};
 
 	cfn.Outputs.CMSSiteStore = {
 		Value: { Ref: 'CMSSiteStore' },
-		Export: {'Fn::Sub': '${AWS::StackName}-CMSSiteStore' }
+		Export: {
+			Name: {'Fn::Sub': '${AWS::StackName}-CMSSiteStore' }
+		}
 	};
 
 	cfn.Outputs.DefinitionsStoreWebsiteURL = {
 		Value: {'Fn::GetAtt': ['DefinitionsStore', 'WebsiteURL']},
-		Export: {'Fn::Sub': '${AWS::StackName}-DefinitionsStoreWebsiteURL' }
+		Export: {
+			Name: {'Fn::Sub': '${AWS::StackName}-DefinitionsStoreWebsiteURL' }
+		}
 	};
 
 	cfn.Outputs.TargetSiteStoreWebsiteURL = {
 		Value: {'Fn::GetAtt': ['TargetSiteStore', 'WebsiteURL']},
-		Export: {'Fn::Sub': '${AWS::StackName}-TargetSiteStoreWebsiteURL' }
+		Export: {
+			Name: {'Fn::Sub': '${AWS::StackName}-TargetSiteStoreWebsiteURL' }
+		}
 	};
 
 	cfn.Outputs.CMSSiteStoreWebsiteURL = {
 		Value: {'Fn::GetAtt': ['CMSSiteStore', 'WebsiteURL']},
-		Export: {'Fn::Sub': '${AWS::StackName}-CMSSiteStoreWebsiteURL' }
+		Export: {
+			Name: {'Fn::Sub': '${AWS::StackName}-CMSSiteStoreWebsiteURL' }
+		}
 	};
 
 	return Promise.resolve(cfn);

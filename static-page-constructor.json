@@ -542,7 +542,7 @@
         },
         "Code": {
           "S3Bucket": "static-page-constructor",
-          "S3Key": "lambdas/PublishPage@1.0.4.zip"
+          "S3Key": "lambdas/PublishPage@1.0.5.zip"
         },
         "Tags": [
           {
@@ -2539,6 +2539,18 @@
         "MfaConfiguration": "OFF",
         "UserPoolTags": {
           "Project": "Static Page Constructor"
+        },
+        "AutoVerifiedAttributes": [
+          "email"
+        ],
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 8,
+            "RequireLowercase": false,
+            "RequireNumbers": false,
+            "RequireSymbols": false,
+            "RequireUppercase": false
+          }
         }
       }
     },
@@ -2751,7 +2763,9 @@
         "Ref": "UserPool"
       },
       "Export": {
-        "Name": "UserPool::Id"
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-UserPoolId"
+        }
       }
     },
     "UserPoolClientId": {
@@ -2759,7 +2773,9 @@
         "Ref": "UserPoolClient"
       },
       "Export": {
-        "Name": "UserPoolClient::Id"
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-UserPoolClientId"
+        }
       }
     },
     "IdentityPoolId": {
@@ -2767,7 +2783,9 @@
         "Ref": "IdentityPool"
       },
       "Export": {
-        "Name": "IdentityPool::Id"
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-IdentityPoolId"
+        }
       }
     },
     "ApiKey": {
@@ -2775,7 +2793,78 @@
         "Ref": "ApiKey"
       },
       "Export": {
-        "Name": "ApiKey::Id"
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-ApiKeyId"
+        }
+      }
+    },
+    "DefinitionsStore": {
+      "Value": {
+        "Ref": "DefinitionsStore"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-DefinitionsStore"
+        }
+      }
+    },
+    "TargetSiteStore": {
+      "Value": {
+        "Ref": "TargetSiteStore"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-TargetSiteStore"
+        }
+      }
+    },
+    "CMSSiteStore": {
+      "Value": {
+        "Ref": "CMSSiteStore"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-CMSSiteStore"
+        }
+      }
+    },
+    "DefinitionsStoreWebsiteURL": {
+      "Value": {
+        "Fn::GetAtt": [
+          "DefinitionsStore",
+          "WebsiteURL"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-DefinitionsStoreWebsiteURL"
+        }
+      }
+    },
+    "TargetSiteStoreWebsiteURL": {
+      "Value": {
+        "Fn::GetAtt": [
+          "TargetSiteStore",
+          "WebsiteURL"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-TargetSiteStoreWebsiteURL"
+        }
+      }
+    },
+    "CMSSiteStoreWebsiteURL": {
+      "Value": {
+        "Fn::GetAtt": [
+          "CMSSiteStore",
+          "WebsiteURL"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-CMSSiteStoreWebsiteURL"
+        }
       }
     }
   }

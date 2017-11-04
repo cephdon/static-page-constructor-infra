@@ -39,8 +39,10 @@ exports.handler = (event, context, callback) => {
                 let def = getDefForConf(conf);
                 let html = def.html;
 
+                const getVal = (propName) => conf.props[propName] ? conf.props[propName].trim() : '';
+
                 Object.keys(def.props).forEach(propName => {
-                    html = html.replace(new RegExp(`{{ ${propName} }}`, 'g'), conf.props[propName]);
+                    html = html.replace(new RegExp(`{{ ${propName} }}`, 'g'), getVal(propName));
                 });
 
                 if (conf.areas) {
