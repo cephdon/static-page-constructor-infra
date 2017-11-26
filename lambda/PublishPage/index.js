@@ -1,4 +1,5 @@
 var AWS = require('aws-sdk');
+var markdown = require('markdown').markdown;
 
 var s3 = new AWS.S3();
 var dynamodb = new AWS.DynamoDB();
@@ -39,7 +40,21 @@ exports.handler = (event, context, callback) => {
                 let def = getDefForConf(conf);
                 let html = def.html;
 
-                const getVal = (propName) => conf.props[propName] ? conf.props[propName].trim() : '';
+                const getVal = (propName) => {
+                    let value = '';
+
+                    console.log('def', def);
+
+                    if (conf.props[propName]) {
+                        value = conf.props[propName].trim()
+
+                        if (def.props[propName] && def.props[propName].type === 'markdown') {
+                            value = markdown.toHTML(value);
+                        }
+                    }
+
+                    return value;
+                };
 
                 Object.keys(def.props).forEach(propName => {
                     html = html.replace(new RegExp(`{{ ${propName} }}`, 'g'), getVal(propName));

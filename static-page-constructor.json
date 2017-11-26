@@ -176,7 +176,8 @@
               "Ref": "TargetSiteStore"
             }
           }
-        }
+        },
+        "Timeout": 5
       }
     },
     "GetPageTemplate": {
@@ -225,7 +226,8 @@
               "Ref": "TargetSiteStore"
             }
           }
-        }
+        },
+        "Timeout": 5
       }
     },
     "GetWidget": {
@@ -274,7 +276,8 @@
               "Ref": "TargetSiteStore"
             }
           }
-        }
+        },
+        "Timeout": 5
       }
     },
     "ImportPageTemplates": {
@@ -323,7 +326,8 @@
               "Ref": "TargetSiteStore"
             }
           }
-        }
+        },
+        "Timeout": 5
       }
     },
     "ImportWidgets": {
@@ -372,7 +376,8 @@
               "Ref": "TargetSiteStore"
             }
           }
-        }
+        },
+        "Timeout": 5
       }
     },
     "ListPageTemplates": {
@@ -421,7 +426,8 @@
               "Ref": "TargetSiteStore"
             }
           }
-        }
+        },
+        "Timeout": 5
       }
     },
     "ListPages": {
@@ -470,7 +476,8 @@
               "Ref": "TargetSiteStore"
             }
           }
-        }
+        },
+        "Timeout": 5
       }
     },
     "ListWidgets": {
@@ -519,7 +526,8 @@
               "Ref": "TargetSiteStore"
             }
           }
-        }
+        },
+        "Timeout": 5
       }
     },
     "PublishPage": {
@@ -542,7 +550,7 @@
         },
         "Code": {
           "S3Bucket": "static-page-constructor",
-          "S3Key": "lambdas/PublishPage@1.0.5.zip"
+          "S3Key": "lambdas/PublishPage@1.1.2.zip"
         },
         "Tags": [
           {
@@ -568,7 +576,8 @@
               "Ref": "TargetSiteStore"
             }
           }
-        }
+        },
+        "Timeout": 5
       }
     },
     "SavePage": {
@@ -617,7 +626,8 @@
               "Ref": "TargetSiteStore"
             }
           }
-        }
+        },
+        "Timeout": 5
       }
     },
     "GetPageInvokePermission": {

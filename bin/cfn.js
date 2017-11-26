@@ -191,7 +191,8 @@ const attachLambdas = (cfn) => {
 						DEFINITIONS_BUCKET: { Ref: 'DefinitionsStore' },
 						TARGET_SITE_BUCKET: { Ref: 'TargetSiteStore' }
 					}
-				}
+				},
+				Timeout: 5
 			}
 		};
 		return cfn;
